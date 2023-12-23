@@ -7,7 +7,7 @@ def display_student(root):
     #gọi hàm style căn chỉnh
     configure_styles()
     warehourse_window = tk.Toplevel(root)
-    warehourse_window.title("warehourse")
+    warehourse_window.title("Học sinh")
         # Lấy kích thước của màn hình
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
@@ -29,10 +29,10 @@ def display_student(root):
 
     tree = ttk.Treeview(warehourse_window, columns=("HocSinhID", "HoTen", "NgaySinh", "LopHocID"), show="headings")
 
-    tree.heading("HocSinhID", text="ID")
+    tree.heading("HocSinhID", text="Mã học sinh")
     tree.heading("HoTen", text="Họ Tên")
     tree.heading("NgaySinh", text="Ngày Sinh")
-    tree.heading("LopHocID", text="Lớp Học ID")
+    tree.heading("LopHocID", text="Mã lớp")
     tree.column("HocSinhID",width=220)
     tree.column("HoTen", width=220)
     tree.column("NgaySinh", width=220)
@@ -46,14 +46,23 @@ def display_student(root):
         password="123456789",
         database="qlsv"
     )
+    cursor = conn.cursor()
 
-    # Fetch data from the database
-    query = "SELECT * FROM hocsinh"
-    df = pd.read_sql_query(query, conn)
+    # Fetch data from the MySQL table
+    cursor.execute("SELECT * FROM HocSinh")
+    rows = cursor.fetchall()
 
     # Insert data into the Treeview
-    for row in df.itertuples(index=False):
+    for row in rows:
         tree.insert("", "end", values=row)
+
+    # # Fetch data from the database
+    # query = "SELECT * FROM hocsinh"
+    # df = pd.read_sql_query(query, conn)
+    #
+    # # Insert data into the Treeview
+    # for row in df.itertuples(index=False):
+    #     tree.insert("", "end", values=row)
 
     tree.grid(row=3, column=1, columnspan=4, rowspan=10, pady=10, padx=10, sticky="nsew")
 
@@ -220,13 +229,18 @@ def display_student(root):
         tree.delete(*tree.get_children())
 
         try:
-            # Fetch data from the database based on the search value
-            search_query = f"SELECT * FROM HocSinh WHERE HoTen LIKE '%{search_value}%'"
-            df_search = pd.read_sql_query(search_query, conn)
+            cursor = conn.cursor()
+            # Dynamically generate the SQL query based on the search value
+            search_query =f"SELECT * FROM HocSinh WHERE HoTen LIKE '%{search_value}%'"
+            cursor.execute(search_query)
+            rows = cursor.fetchall()
+
+            # Clear the Treeview
+            tree.delete(*tree.get_children())
 
             # Insert data into the Treeview
-            for row_search in df_search.itertuples(index=False):
-                tree.insert("", "end", values=row_search)
+            for row in rows:
+                tree.insert("", "end", values=row)
 
         except mysql.connector.Error as err:
             # Handle MySQL errors
@@ -237,13 +251,13 @@ def display_student(root):
         tree.delete(*tree.get_children())
 
         try:
-            # Fetch all data from the database
-            query_all = "SELECT * FROM HocSinh"
-            df_all = pd.read_sql_query(query_all, conn)
+            # Fetch data from the MySQL table
+            cursor.execute("SELECT * FROM HocSinh")
+            rows = cursor.fetchall()
 
             # Insert data into the Treeview
-            for row_all in df_all.itertuples(index=False):
-                tree.insert("", "end", values=row_all)
+            for row in rows:
+                tree.insert("", "end", values=row)
 
         except mysql.connector.Error as err:
             # Handle MySQL errors

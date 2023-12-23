@@ -52,11 +52,13 @@ def display_score(root):
         database="qlsv"
     )
 
-    # Fetch data from the database
-    query = "SELECT * FROM diemhocsinh"
-    df = pd.read_sql_query(query, conn)
+    cursor = conn.cursor()
+    # Fetch data from the MySQL table
+    cursor.execute("SELECT * FROM diemhocsinh")
+    rows = cursor.fetchall()
 
-    for row in df.itertuples(index=False):
+    # Insert data into the Treeview
+    for row in rows:
         score_tree.insert("", "end", values=row)
 
     score_tree.grid(row=4, column=2, columnspan=5, rowspan=10, pady=10, padx=10, sticky="nsew")
@@ -280,13 +282,13 @@ def display_score(root):
         score_tree.delete(*score_tree.get_children())
 
         try:
-            # Fetch all data from the database
-            query_all = "SELECT * FROM DiemHocSinh"
-            df_all = pd.read_sql_query(query_all, conn)
+            # Fetch data from the MySQL table
+            cursor.execute("SELECT * FROM diemhocsinh")
+            rows = cursor.fetchall()
 
             # Insert data into the Treeview
-            for row_all in df_all.itertuples(index=False):
-                score_tree.insert("", "end", values=row_all)
+            for row in rows:
+                score_tree.insert("", "end", values=row)
 
         except mysql.connector.Error as err:
             # Handle MySQL errors
@@ -306,11 +308,14 @@ def display_score(root):
         try:
             # Fetch data from the database based on the search criteria
             query_search = f"SELECT * FROM DiemHocSinh WHERE HoTen LIKE '%{search_criteria}%'"
-            df_search = pd.read_sql_query(query_search, conn)
+
+            # Fetch data from the MySQL table
+            cursor.execute(query_search)
+            rows = cursor.fetchall()
 
             # Insert data into the Treeview
-            for row_search in df_search.itertuples(index=False):
-                score_tree.insert("", "end", values=row_search)
+            for row in rows:
+                score_tree.insert("", "end", values=row)
 
         except mysql.connector.Error as err:
             # Handle MySQL errors
@@ -321,13 +326,12 @@ def display_score(root):
         score_tree.delete(*score_tree.get_children())
 
         try:
-            # Fetch data from the database and sort by HoTen
-            query_sort = "SELECT * FROM DiemHocSinh ORDER BY HoTen"
-            df_sort = pd.read_sql_query(query_sort, conn)
+            cursor.execute("SELECT * FROM DiemHocSinh ORDER BY HoTen")
+            rows = cursor.fetchall()
 
             # Insert data into the Treeview
-            for row_sort in df_sort.itertuples(index=False):
-                score_tree.insert("", "end", values=row_sort)
+            for row in rows:
+                score_tree.insert("", "end", values=row)
 
         except mysql.connector.Error as err:
             # Handle MySQL errors
@@ -338,13 +342,12 @@ def display_score(root):
         score_tree.delete(*score_tree.get_children())
 
         try:
-            # Fetch data from the database and sort by the selected subject
-            query_sort = f"SELECT * FROM DiemHocSinh ORDER BY {subject} DESC"
-            df_sort = pd.read_sql_query(query_sort, conn)
+            cursor.execute(f"SELECT * FROM DiemHocSinh ORDER BY {subject} DESC")
+            rows = cursor.fetchall()
 
             # Insert data into the Treeview
-            for row_sort in df_sort.itertuples(index=False):
-                score_tree.insert("", "end", values=row_sort)
+            for row in rows:
+                score_tree.insert("", "end", values=row)
 
         except mysql.connector.Error as err:
             # Handle MySQL errors
