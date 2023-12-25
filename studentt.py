@@ -12,8 +12,8 @@ def display_student(root):
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     
-    window_width = 900  # Thay đổi kích thước theo nhu cầu
-    window_height = 500  # Thay đổi kích thước theo nhu cầu
+    window_width = 1200  # Thay đổi kích thước theo nhu cầu
+    window_height = 570  # Thay đổi kích thước theo nhu cầu
     # Tính toán vị trí để cửa sổ xuất hiện giữa màn hình
     x = (screen_width - window_width) // 2
     y = (screen_height - window_height) // 2
@@ -25,17 +25,51 @@ def display_student(root):
         warehourse_window.destroy()  # Đóng cửa sổ 2
         root.deiconify()
     back_button = ttk.Button(warehourse_window, text="Quay lại", command=close_window_2, style='Back_Bbutton.TButton')
-    back_button.grid(row=0, column=4, pady=10)
+    back_button.grid(row=0, column=1, pady=10)
 
-    tree = ttk.Treeview(warehourse_window, columns=("HocSinhID", "HoTen", "NgaySinh", "LopHocID"), show="headings")
+    # Label to display the total number of students
+    total_students_label = ttk.Label(warehourse_window, text="Tổng số học sinh: ", style="GreenLabel.TLabel")
+    total_students_label.grid(row=13, column=1, pady=10, columnspan=2)
 
+    def update_total_students_label():
+        # Update the total students label with the current count
+        total_students_label["text"] = f"Tổng số học sinh: {tree.get_children().__len__()}"
+
+    # Dictionary to store the current sort order for each column
+    sort_order = {}
+
+    def sort_treeview(column):
+        # Toggle the sort order (default to "asc" if not set)
+        current_order = sort_order.get(column, "asc")
+        new_order = "desc" if current_order == "asc" else "asc"
+        sort_order[column] = new_order
+
+        # Get all the items in the Treeview
+        items = tree.get_children('')
+
+        # Sort the items based on the selected column and sort order
+        items = sorted(items, key=lambda x: tree.set(x, column), reverse=(new_order == "desc"))
+
+        # Update the Treeview with the sorted items
+        for index, item in enumerate(items):
+            tree.move(item, '', index)
+
+    def setup_sortable_treeview_columns():
+        # Add sorting functionality to each column heading
+        for col in ["HoTen", "HocSinhID", "NgaySinh", "QueQuan", "LopHocID"]:
+            tree.heading(col, text=col, command=lambda c=col: sort_treeview(c))
+
+    tree = ttk.Treeview(warehourse_window, columns=("HocSinhID", "HoTen", "NgaySinh","QueQuan", "LopHocID"), show="headings")
+    setup_sortable_treeview_columns()
     tree.heading("HocSinhID", text="Mã học sinh")
+    tree.heading("QueQuan", text="Quê quán")
     tree.heading("HoTen", text="Họ Tên")
     tree.heading("NgaySinh", text="Ngày Sinh")
     tree.heading("LopHocID", text="Mã lớp")
     tree.column("HocSinhID",width=220)
     tree.column("HoTen", width=220)
     tree.column("NgaySinh", width=220)
+    tree.column("QueQuan", width=220)
     tree.column("LopHocID", width=220)
     tree['height'] = 15
 
@@ -55,16 +89,8 @@ def display_student(root):
     # Insert data into the Treeview
     for row in rows:
         tree.insert("", "end", values=row)
-
-    # # Fetch data from the database
-    # query = "SELECT * FROM hocsinh"
-    # df = pd.read_sql_query(query, conn)
-    #
-    # # Insert data into the Treeview
-    # for row in df.itertuples(index=False):
-    #     tree.insert("", "end", values=row)
-
-    tree.grid(row=3, column=1, columnspan=4, rowspan=10, pady=10, padx=10, sticky="nsew")
+    update_total_students_label()
+    tree.grid(row=3, column=1, columnspan=5, rowspan=10, pady=10, padx=10, sticky="nsew")
 
     def add_student():
         # Open a new window for adding a new student
@@ -75,12 +101,12 @@ def display_student(root):
         id_entry = ttk.Entry(add_window, width=10)
         name_entry = ttk.Entry(add_window, width=20)
         dob_entry = ttk.Entry(add_window, width=15)
-        class_id_entry = ttk.Entry(add_window, width=10)
+        que_entry = ttk.Entry(add_window, width=15)
 
         id_label = ttk.Label(add_window, text="Mã học sinh:")
         name_label = ttk.Label(add_window, text="Họ Tên:")
         dob_label = ttk.Label(add_window, text="Ngày Sinh (năm-tháng-ngày):")
-        class_id_label = ttk.Label(add_window, text="Lớp Học ID:")
+        que_label = ttk.Label(add_window, text="Quê quán:")
 
         id_label.grid(row=0, column=0, padx=5, pady=5)
         id_entry.grid(row=0, column=1, padx=5, pady=5)
@@ -88,25 +114,48 @@ def display_student(root):
         name_entry.grid(row=1, column=1, padx=5, pady=5)
         dob_label.grid(row=2, column=0, padx=5, pady=5)
         dob_entry.grid(row=2, column=1, padx=5, pady=5)
-        class_id_label.grid(row=3, column=0, padx=5, pady=5)
-        class_id_entry.grid(row=3, column=1, padx=5, pady=5)
+        que_label.grid(row=3, column=0, padx=5, pady=5)
+        que_entry.grid(row=3, column=1, padx=5, pady=5)
+
+        # Modified: Use ComboBox for class selection
+        class_label = ttk.Label(add_window, text="Lớp Học:")
+        class_combobox = ttk.Combobox(add_window, width=20, state="readonly")
+        class_combobox.grid(row=4, column=1, padx=5, pady=5)
+        class_label.grid(row=4, column=0, padx=5, pady=5)
+
+        try:
+            # Modified: Fetch class information from the database
+            query_lophoc_info = "SELECT LopHocID FROM LopHoc"
+            lophoc_info_df = pd.read_sql_query(query_lophoc_info, conn)
+
+            # Modified: Populate the ComboBox with class IDs
+            class_combobox["values"] = lophoc_info_df["LopHocID"].tolist()
+            class_combobox.set("Chọn lớp")  # Set the default value
+
+        except mysql.connector.Error as err:
+            messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
 
         def insert_student():
             try:
-                # Get values from the entry widgets
+                # Get values from the entry widgets and ComboBox
                 student_id = int(id_entry.get())
                 student_name = name_entry.get()
                 student_dob = dob_entry.get()
-                student_class_id = int(class_id_entry.get())
+                student_que = que_entry.get()
+                student_class_id = class_combobox.get()
 
                 # Insert the new student into the database
-                insert_query = f"INSERT INTO hocsinh (HocSinhID, HoTen, NgaySinh, LopHocID) VALUES ({student_id}, '{student_name}', '{student_dob}', {student_class_id})"
+                insert_query = f"INSERT INTO HocSinh (HocSinhID, HoTen, NgaySinh, QueQuan, LopHocID) VALUES ({student_id}, '{student_name}', '{student_dob}', '{student_que}', '{student_class_id}')"
                 cursor = conn.cursor()
                 cursor.execute(insert_query)
                 conn.commit()
-                # Update the Treeview with the new data
-                tree.insert("", "end", values=(student_id, student_name, student_dob, student_class_id))
 
+                # Update the Treeview with the new data
+                tree.insert("", "end", values=(student_id, student_name, student_dob, student_que, student_class_id))
+                # Update the total students label
+                update_total_students_label()
+
+                class_combobox.set("Chọn lớp")
                 # Close the add_window
                 add_window.destroy()
 
@@ -119,7 +168,7 @@ def display_student(root):
 
         # Button to trigger the data insertion
         insert_button = ttk.Button(add_window, text="Thêm", command=insert_student)
-        insert_button.grid(row=4, column=0, columnspan=2, pady=10)
+        insert_button.grid(row=5, column=0, columnspan=2, pady=10)
 
     def edit_student():
         selected_item = tree.selection()
@@ -144,22 +193,41 @@ def display_student(root):
         dob_entry_edit = ttk.Entry(edit_window, width=15)
         dob_entry_edit.insert(0, selected_values[2])
 
-        class_id_entry_edit = ttk.Entry(edit_window, width=10)
-        class_id_entry_edit.insert(0, selected_values[3])
+        que_entry_edit = ttk.Entry(edit_window, width=15)
+        que_entry_edit.insert(0, selected_values[3])
 
-        # id_label_edit = ttk.Label(edit_window, text="ID:")
+        # ComboBox for selecting class ID
+        class_id_combobox_edit = ttk.Combobox(edit_window, width=10, state="readonly")
+        class_id_combobox_edit.grid(row=4, column=1, padx=5, pady=5)
+        class_id_label_edit = ttk.Label(edit_window, text="Lớp Học ID:")
+        class_id_label_edit.grid(row=4, column=0, padx=5, pady=5)
+
+        try:
+            # Fetch class IDs from the database
+            query_lophoc_info = "SELECT LopHocID FROM LopHoc"
+            lophoc_info_df = pd.read_sql_query(query_lophoc_info, conn)
+
+            # Add class IDs to the ComboBox
+            class_id_combobox_edit["values"] = lophoc_info_df["LopHocID"].tolist()
+            class_id_combobox_edit.set(selected_values[4])  # Set the default value
+
+        except mysql.connector.Error as err:
+            tk.messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
+
         name_label_edit = ttk.Label(edit_window, text="Họ Tên:")
         dob_label_edit = ttk.Label(edit_window, text="Ngày Sinh (năm-tháng-ngày):")
-        class_id_label_edit = ttk.Label(edit_window, text="Lớp Học ID:")
+        que_label_edit = ttk.Label(edit_window, text="Quê quán:")
 
-        # id_label_edit.grid(row=0, column=0, padx=5, pady=5)
-        # id_entry_edit.grid(row=0, column=1, padx=5, pady=5)
         name_label_edit.grid(row=1, column=0, padx=5, pady=5)
         name_entry_edit.grid(row=1, column=1, padx=5, pady=5)
         dob_label_edit.grid(row=2, column=0, padx=5, pady=5)
         dob_entry_edit.grid(row=2, column=1, padx=5, pady=5)
-        class_id_label_edit.grid(row=3, column=0, padx=5, pady=5)
-        class_id_entry_edit.grid(row=3, column=1, padx=5, pady=5)
+        que_label_edit.grid(row=3, column=0, padx=5, pady=5)
+        que_entry_edit.grid(row=3, column=1, padx=5, pady=5)
+
+        # class ID label and ComboBox moved to row 4
+        class_id_label_edit.grid(row=4, column=0, padx=5, pady=5)
+        class_id_combobox_edit.grid(row=4, column=1, padx=5, pady=5)
 
         def update_student():
             try:
@@ -167,30 +235,33 @@ def display_student(root):
                 student_id_edit = int(id_entry_edit.get())
                 student_name_edit = name_entry_edit.get()
                 student_dob_edit = dob_entry_edit.get()
-                student_class_id_edit = int(class_id_entry_edit.get())
+                student_que_edit = que_entry_edit.get()
+                student_class_id_edit = class_id_combobox_edit.get()
 
                 # Update the student in the database
-                update_query = f"UPDATE HocSinh SET HoTen = '{student_name_edit}', NgaySinh = '{student_dob_edit}', LopHocID = {student_class_id_edit} WHERE HocSinhID = {student_id_edit}"
+                update_query = f"UPDATE HocSinh SET HoTen = '{student_name_edit}', NgaySinh = '{student_dob_edit}', QueQuan = '{student_que_edit}', LopHocID = '{student_class_id_edit}' WHERE HocSinhID = {student_id_edit}"
                 cursor = conn.cursor()
                 cursor.execute(update_query)
                 conn.commit()
 
                 # Update the Treeview with the edited data
-                tree.item(selected_item,values=(student_id_edit, student_name_edit, student_dob_edit, student_class_id_edit))
+                tree.item(selected_item, values=(
+                student_id_edit, student_name_edit, student_dob_edit, student_que_edit, student_class_id_edit))
+
+                # Update the total students label
+                update_total_students_label()
 
                 # Close the edit_window
                 edit_window.destroy()
 
             except ValueError as e:
-                # Handle the case where conversion to int fails
                 tk.messagebox.showerror("Error", f"Invalid input: {e}")
             except mysql.connector.Error as err:
-                # Handle MySQL errors
                 tk.messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
 
         # Button to trigger the data update
         update_button = ttk.Button(edit_window, text="Cập nhập", command=update_student)
-        update_button.grid(row=4, column=0, columnspan=2, pady=10)
+        update_button.grid(row=5, column=0, columnspan=2, pady=10)
 
     def delete_student():
         selected_item = tree.selection()
@@ -215,6 +286,8 @@ def display_student(root):
 
             # Remove the selected item from the Treeview
             tree.delete(selected_item)
+            # Update the total students label
+            update_total_students_label()
 
         except mysql.connector.Error as err:
             # Handle MySQL errors
@@ -241,7 +314,7 @@ def display_student(root):
             # Insert data into the Treeview
             for row in rows:
                 tree.insert("", "end", values=row)
-
+            update_total_students_label()
         except mysql.connector.Error as err:
             # Handle MySQL errors
             tk.messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
@@ -258,6 +331,9 @@ def display_student(root):
             # Insert data into the Treeview
             for row in rows:
                 tree.insert("", "end", values=row)
+
+            # Update the total students label
+            update_total_students_label()
 
         except mysql.connector.Error as err:
             # Handle MySQL errors
@@ -287,18 +363,28 @@ def display_student(root):
             file_path = tk.filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
 
             if file_path:
-                # Read data from the Excel file
+                # Modified: Read data from the Excel file using Pandas
                 df_import = pd.read_excel(file_path)
+
+                # Validate the Excel file structure (adjust column names accordingly)
+                required_columns = {"HocSinhID", "HoTen", "NgaySinh", "QueQuan", "LopHocID"}
+                if not required_columns.issubset(df_import.columns):
+                    tk.messagebox.showerror("Error", "Invalid Excel file structure. Required columns are missing.")
+                    return
 
                 # Insert data into the database
                 for row_import in df_import.itertuples(index=False):
-                    insert_query = f"INSERT INTO HocSinh (HocSinhID, HoTen, NgaySinh, LopHocID) VALUES ({row_import.HocSinhID}, '{row_import.HoTen}', '{row_import.NgaySinh}', {row_import.LopHocID})"
+                    insert_query = f"INSERT INTO HocSinh (HocSinhID, HoTen, NgaySinh, QueQuan, LopHocID) VALUES ({row_import.HocSinhID}, '{row_import.HoTen}', '{row_import.NgaySinh}', '{row_import.QueQuan}', '{row_import.LopHocID}')"
                     cursor = conn.cursor()
                     cursor.execute(insert_query)
                     conn.commit()
 
                 # Refresh the Treeview with the new data
                 show_all_students()
+
+                # Update the total students label
+                update_total_students_label()
+
                 tk.messagebox.showinfo("Thành công", "Dữ liệu lấy từ file execl thành công.")
         except mysql.connector.Error as err:
             tk.messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
@@ -334,4 +420,4 @@ def display_student(root):
     import_button.grid(row=2, column=4, pady=10, sticky="ew")
 
     label = ttk.Label(warehourse_window, text="Dữ liệu học sinh", style="GreenLabel.TLabel")
-    label.grid(row=0, column=1, pady=10,padx=100, columnspan=2)
+    label.grid(row=0, column=2, pady=10,padx=100, columnspan=4)
