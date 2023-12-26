@@ -13,7 +13,7 @@ def display_score(root):
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     
-    window_width = 1250  # Thay đổi kích thước theo nhu cầu
+    window_width = 1350  # Thay đổi kích thước theo nhu cầu
     window_height = 600  # Thay đổi kích thước theo nhu cầu
     # Tính toán vị trí để cửa sổ xuất hiện giữa màn hình
     x = (screen_width - window_width) // 2
@@ -44,7 +44,7 @@ def display_score(root):
 
         # Calculate the sum and count for each subject
         for row in rows:
-            for i, subject in enumerate(subjects, start=3):  # Assuming subjects start from the 3rd column
+            for i, subject in enumerate(subjects, start=4):  # Assuming subjects start from the 3rd column
                 subject_sum[subject] += row[i]
                 subject_count[subject] += 1
 
@@ -104,17 +104,18 @@ def display_score(root):
 
     def setup_sortable_treeview_columns():
         # Add sorting functionality to each column heading
-        for col in ["HoTen", "HocSinhID", "Diem_toan", "Diem_van", "Diem_anh",
+        for col in ["HoTen", "HocSinhID","Ten_lop", "Diem_toan", "Diem_van", "Diem_anh",
                     "Dao_duc", "Tn_Xh", "Lsu_Dly", "Khoa_hoc", "Tin_Congnghe",
                     "The_chat", "Nghe_thuat"]:
             score_tree.heading(col, text=col, command=lambda c=col: sort_treeview(c))
 
-    score_tree = ttk.Treeview(history_window, columns=("HoTen", "HocSinhID","Diem_toan", "Diem_van", "Diem_anh"
+    score_tree = ttk.Treeview(history_window, columns=("HoTen", "HocSinhID","Ten_lop","Diem_toan", "Diem_van", "Diem_anh"
                                                        ,"Dao_duc", "Tn_Xh","Lsu_Dly", "Khoa_hoc", "Tin_Congnghe"
                                                        ,"The_chat", "Nghe_thuat"),show="headings")
     setup_sortable_treeview_columns()
     score_tree.heading("HoTen",text="Họ Tên")
     score_tree.heading("HocSinhID", text="Mã học sinh")
+    score_tree.heading("Ten_lop", text="Lớp")
     score_tree.heading("Diem_toan", text="Toán")
     score_tree.heading("Diem_van", text="Văn")
     score_tree.heading("Diem_anh", text="Anh")
@@ -127,6 +128,7 @@ def display_score(root):
     score_tree.heading("Nghe_thuat", text="Nghệ thuật")
     score_tree.column("HoTen", width=100)
     score_tree.column("HocSinhID", width=100)
+    score_tree.column("Ten_lop", width=100)
     score_tree.column("Diem_toan", width=100)
     score_tree.column("Diem_van", width=100)
     score_tree.column("Diem_anh", width=100)
@@ -149,7 +151,7 @@ def display_score(root):
 
     cursor = conn.cursor()
     # Fetch data from the MySQL table
-    cursor.execute("SELECT HoTen, HocSinhID, Diem_toan, Diem_van, Diem_anh, Dao_duc,Tn_Xh,Lsu_Dly"
+    cursor.execute("SELECT HoTen, HocSinhID,Ten_lop, Diem_toan, Diem_van, Diem_anh, Dao_duc,Tn_Xh,Lsu_Dly"
                    ",Khoa_hoc,Tin_Congnghe,The_chat,Nghe_thuat FROM diemhocsinh")
     rows = cursor.fetchall()
 
@@ -205,7 +207,6 @@ def display_score(root):
 
         # Create StringVars to store the values entered by the user
         hoc_sinh_id_var = tk.StringVar(value=original_hoc_sinh_id)
-        # selected_name_var = tk.StringVar(value=selected_data[0])
 
         # Add a Combobox for selecting the name of the student (HoTen)
         name_label = ttk.Label(edit_score_window, text="Họ Tên:")
@@ -223,6 +224,22 @@ def display_score(root):
         except mysql.connector.Error as err:
             messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
 
+        # Add a Combobox for selecting the class of the student
+        class_label = ttk.Label(edit_score_window, text="Lớp:")
+        class_combobox = ttk.Combobox(edit_score_window, width=20, state="readonly")
+        class_combobox.grid(row=0, column=1, padx=5, pady=5)
+        class_label.grid(row=0, column=0, padx=5, pady=5)
+        try:
+            query_class_info = "SELECT LopHocID FROM lophoc"
+            class_info_df = pd.read_sql_query(query_class_info, conn)
+
+            # Add a placeholder as the initial value for the Combobox
+            class_combobox["values"] = class_info_df["LopHocID"].tolist()
+            class_combobox.set(selected_data[2])  # Set the original value
+
+        except mysql.connector.Error as err:
+            messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
+
         subject_vars = {}
         subject_entries = {}
 
@@ -230,7 +247,7 @@ def display_score(root):
                     "Tin_Congnghe", "The_chat", "Nghe_thuat"]
 
         for i, subject in enumerate(subjects):
-            subject_vars[subject] = tk.DoubleVar(value=float(selected_data[i + 2]))
+            subject_vars[subject] = tk.DoubleVar(value=float(selected_data[i + 3]))
 
             subject_label = ttk.Label(edit_score_window, text=f"Điểm {subject}:")
             subject_entry = ttk.Entry(edit_score_window, textvariable=subject_vars[subject])
@@ -245,11 +262,12 @@ def display_score(root):
                 # Get the updated values from the entry widgets
                 hoc_sinh_id = int(hoc_sinh_id_var.get())
                 selected_name = name_combobox.get()
+                selected_class = class_combobox.get()
 
                 subject_values = {subject: float(var.get()) for subject, var in subject_vars.items()}
 
                 # Update the score in the database
-                update_query = f"UPDATE DiemHocSinh SET HoTen='{selected_name}', HocSinhID={hoc_sinh_id}, "
+                update_query = f"UPDATE DiemHocSinh SET HoTen='{selected_name}', HocSinhID={hoc_sinh_id}, Ten_lop='{selected_class}', "
                 for subject, value in subject_values.items():
                     update_query += f"{subject}={value}, "
                 update_query = update_query.rstrip(', ')  # Remove the trailing comma
@@ -260,7 +278,7 @@ def display_score(root):
                 conn.commit()
 
                 # Update the Treeview with the new data
-                updated_data = [selected_name, hoc_sinh_id] + list(subject_values.values())
+                updated_data = [selected_name, hoc_sinh_id, selected_class] + list(subject_values.values())
                 score_tree.item(selected_item, values=updated_data)
 
                 # Close the edit_score_window
@@ -284,7 +302,7 @@ def display_score(root):
 
         try:
             # Fetch data from the MySQL table
-            cursor.execute("SELECT HoTen, HocSinhID, Diem_toan, Diem_van, Diem_anh, Dao_duc,Tn_Xh,Lsu_Dly"
+            cursor.execute("SELECT HoTen, HocSinhID,Ten_lop, Diem_toan, Diem_van, Diem_anh, Dao_duc,Tn_Xh,Lsu_Dly"
                            ",Khoa_hoc,Tin_Congnghe,The_chat,Nghe_thuat FROM diemhocsinh")
             rows = cursor.fetchall()
 
@@ -310,7 +328,7 @@ def display_score(root):
 
         try:
             # Fetch data from the database based on the search criteria
-            query_search = f"SELECT HoTen, HocSinhID, Diem_toan, Diem_van, Diem_anh, Dao_duc,Tn_Xh,Lsu_Dly,Khoa_hoc,Tin_Congnghe,The_chat,Nghe_thuat" \
+            query_search = f"SELECT HoTen, HocSinhID,Ten_lop, Diem_toan, Diem_van, Diem_anh, Dao_duc,Tn_Xh,Lsu_Dly,Khoa_hoc,Tin_Congnghe,The_chat,Nghe_thuat" \
                            f" FROM DiemHocSinh WHERE HoTen LIKE '%{search_criteria}%'"
 
             # Fetch data from the MySQL table
@@ -329,12 +347,12 @@ def display_score(root):
     def export_to_excel():
         try:
             # Fetch data from the MySQL table
-            cursor.execute("SELECT HoTen, HocSinhID, Diem_toan, Diem_van, Diem_anh, Dao_duc,Tn_Xh,Lsu_Dly"
+            cursor.execute("SELECT HoTen, HocSinhID,Ten_lop, Diem_toan, Diem_van, Diem_anh, Dao_duc,Tn_Xh,Lsu_Dly"
                            ",Khoa_hoc,Tin_Congnghe,The_chat,Nghe_thuat FROM diemhocsinh")
             rows = cursor.fetchall()
 
             # Create a DataFrame using the fetched data
-            df = pd.DataFrame(rows, columns=["HoTen", "HocSinhID", "Diem_toan", "Diem_van", "Diem_anh",
+            df = pd.DataFrame(rows, columns=["HoTen", "HocSinhID","Ten_lop", "Diem_toan", "Diem_van", "Diem_anh",
                                              "Dao_duc", "Tn_Xh", "Lsu_Dly", "Khoa_hoc", "Tin_Congnghe",
                                              "The_chat", "Nghe_thuat"])
 
@@ -363,9 +381,10 @@ def display_score(root):
 
                 # Insert data into the MySQL table
                 for index, row in df.iterrows():
-                    insert_query = f"INSERT INTO diemhocsinh (HoTen, HocSinhID, Diem_toan, Diem_van, Diem_anh, " \
+                    # Assuming 'Ten_lop' is a string, so it should be enclosed in single quotes
+                    insert_query = f"INSERT INTO diemhocsinh (HoTen, HocSinhID, Ten_lop, Diem_toan, Diem_van, Diem_anh, " \
                                    f"Dao_duc, Tn_Xh, Lsu_Dly, Khoa_hoc, Tin_Congnghe, The_chat, Nghe_thuat) " \
-                                   f"VALUES ('{row['HoTen']}', {row['HocSinhID']}, {row['Diem_toan']}, {row['Diem_van']}, " \
+                                   f"VALUES ('{row['HoTen']}', {row['HocSinhID']}, '{row['Ten_lop']}', {row['Diem_toan']}, {row['Diem_van']}, " \
                                    f"{row['Diem_anh']}, {row['Dao_duc']}, {row['Tn_Xh']}, {row['Lsu_Dly']}, {row['Khoa_hoc']}, " \
                                    f"{row['Tin_Congnghe']}, {row['The_chat']}, {row['Nghe_thuat']})"
                     cursor = conn.cursor()
@@ -384,6 +403,7 @@ def display_score(root):
         except mysql.connector.Error as err:
             # Handle MySQL errors
             messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
+
     show_all_button = ttk.Button(history_window, text="Hiển thị tất cả", command=show_all_students)
     show_all_button.grid(row=2, column=4, pady=10, sticky="ew")
     # Add a button to trigger the edit_score function
