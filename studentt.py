@@ -77,8 +77,8 @@ def display_student(root):
     conn = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="123456789",
-        database="qlsv"
+        password="080102",
+        database="ma_ng_mo"
     )
     cursor = conn.cursor()
 

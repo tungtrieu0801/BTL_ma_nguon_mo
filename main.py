@@ -23,7 +23,7 @@ db_config = {
     "host": "localhost",
     "user": "root",
     "password": "080102",
-    "database": "mydatabase",
+    "database": "ma_ng_mo",
 }
 
 script_dir = os.path.dirname(__file__)
@@ -80,7 +80,7 @@ class LoginApp:
             cursor = conn.cursor()
 
             # Execute a query to check if the username and password match
-            query = "SELECT * FROM employee WHERE emp_id = %s AND password = %s"
+            query = "SELECT * FROM account WHERE emp_id = %s AND password = %s"
             cursor.execute(query, (username, password))
             result = cursor.fetchone()
 

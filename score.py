@@ -53,6 +53,29 @@ def display_score(root):
                             for subject in subjects}
 
         return subject_averages
+    def is_valid_float(value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+
+    def validate_input(action, index, value_if_allowed, prior_value, text, validation_type, trigger_type, widget_name):
+        if action == '1':  # insert
+            try:
+                # Try converting the value to a float
+                float_value = float(value_if_allowed)
+                
+                # Check if the float value is within the desired range
+                if 0 <= float_value <= 10:
+                    return True
+                else:
+                    return False
+            except ValueError:
+                return False
+        else:  # delete
+            return True
+
 
     def plot_bar_chart():
         # Calculate subject averages
@@ -78,7 +101,7 @@ def display_score(root):
             plot_bar_chart()
         except Exception as e:
             # Handle any exceptions that might occur during the process
-            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+            messagebox.showerror("Lỗi", "Lỗi")
 
     def update_total_students_label():
         total_students = len(score_tree.get_children())
@@ -145,8 +168,8 @@ def display_score(root):
     conn = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="123456789",
-        database="qlsv"
+        password="080102",
+        database="ma_ng_mo"
     )
 
     cursor = conn.cursor()
@@ -190,7 +213,7 @@ def display_score(root):
 
         except mysql.connector.Error as err:
             # Handle MySQL errors
-            messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
+            messagebox.showerror("Lôi", f"MySQL Error: {err}")
 
     def edit_score():
         selected_item = score_tree.selection()
@@ -205,10 +228,8 @@ def display_score(root):
         edit_score_window = tk.Toplevel(history_window)
         edit_score_window.title("Sửa điểm")
 
-        # Create StringVars to store the values entered by the user
         hoc_sinh_id_var = tk.StringVar(value=original_hoc_sinh_id)
 
-        # Add a Combobox for selecting the name of the student (HoTen)
         name_label = ttk.Label(edit_score_window, text="Họ Tên:")
         name_combobox = ttk.Combobox(edit_score_window, width=20, state="readonly")
         name_combobox.grid(row=1, column=1, padx=5, pady=5)
@@ -217,14 +238,12 @@ def display_score(root):
             query_hocsinh_info = "SELECT HoTen FROM HocSinh"
             hocsinh_info_df = pd.read_sql_query(query_hocsinh_info, conn)
 
-            # Add a placeholder as the initial value for the Combobox
             name_combobox["values"] = hocsinh_info_df["HoTen"].tolist()
-            name_combobox.set(selected_data[0])  # Set the original value
+            name_combobox.set(selected_data[0])
 
         except mysql.connector.Error as err:
             messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
 
-        # Add a Combobox for selecting the class of the student
         class_label = ttk.Label(edit_score_window, text="Lớp:")
         class_combobox = ttk.Combobox(edit_score_window, width=20, state="readonly")
         class_combobox.grid(row=0, column=1, padx=5, pady=5)
@@ -233,9 +252,8 @@ def display_score(root):
             query_class_info = "SELECT LopHocID FROM lophoc"
             class_info_df = pd.read_sql_query(query_class_info, conn)
 
-            # Add a placeholder as the initial value for the Combobox
             class_combobox["values"] = class_info_df["LopHocID"].tolist()
-            class_combobox.set(selected_data[2])  # Set the original value
+            class_combobox.set(selected_data[2])
 
         except mysql.connector.Error as err:
             messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
@@ -250,7 +268,15 @@ def display_score(root):
             subject_vars[subject] = tk.DoubleVar(value=float(selected_data[i + 3]))
 
             subject_label = ttk.Label(edit_score_window, text=f"Điểm {subject}:")
-            subject_entry = ttk.Entry(edit_score_window, textvariable=subject_vars[subject])
+            subject_entry = ttk.Entry(
+                edit_score_window, 
+                textvariable=subject_vars[subject], 
+                validate='key',
+                validatecommand=(
+                    edit_score_window.register(validate_input), 
+                    '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W'
+                )
+            )
 
             subject_label.grid(row=i + 2, column=0, padx=5, pady=5, sticky="e")
             subject_entry.grid(row=i + 2, column=1, padx=5, pady=5, sticky="w")
@@ -288,10 +314,9 @@ def display_score(root):
                 messagebox.showinfo("Thành công", "Điểm đã được cập nhật thành công.")
                 update_total_students_label()
 
-            except ValueError as e:
-                messagebox.showerror("Error", f"Invalid input: {e}")
-            except mysql.connector.Error as err:
-                messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
+            except Exception as e:
+                messagebox.showerror("Lỗi", f"Đã xảy ra lỗi: {e}")
+
 
         update_button = ttk.Button(edit_score_window, text="Cập nhật", command=update_score)
         update_button.grid(row=len(subjects) + 2, column=0, columnspan=2, pady=10)
@@ -402,7 +427,7 @@ def display_score(root):
             messagebox.showwarning("Cảnh báo", "File Excel trống.")
         except mysql.connector.Error as err:
             # Handle MySQL errors
-            messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
+            messagebox.showerror("Lỗi", f"Dữ liệu lỗi")
 
     show_all_button = ttk.Button(history_window, text="Hiển thị tất cả", command=show_all_students)
     show_all_button.grid(row=2, column=4, pady=10, sticky="ew")
