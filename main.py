@@ -128,7 +128,7 @@ class MainApp:
         y = (screen_height - window_height) // 2
 
         root.geometry(f"{window_width}x{window_height}+{x}+{y}")
-        root.title("Ứng dụng Tkinter")
+        root.title("Trang chủ")
 
         frame = ttk.Frame(root)
         frame.pack(pady=20, padx=20, fill="both", expand=True)
@@ -170,7 +170,7 @@ class MainApp:
             image.thumbnail((width, height))
             return ImageTk.PhotoImage(image)
         
-        label = ttk.Label(frame, text="ỨNG DỤNG QUẢN LÍ SINH VIÊN", style="GreenLabel.TLabel")
+        label = ttk.Label(frame, text="ỨNG DỤNG QUẢN LÍ TRƯỜNG HỌC", style="GreenLabel.TLabel")
         label.grid(row=0, column=0, columnspan=2, pady=(30, 0))
 
         button = ttk.Button(frame, image=image_home, text="Giáo viên   ",
@@ -188,7 +188,7 @@ class MainApp:
         button.grid(row=2, column=0, pady=40, padx=30)
 
         # image_history = load_and_resize_image(file_path + "/images/time-management.png", 65, 65)
-        button = ttk.Button(frame, image=image_history, text="Score     ",
+        button = ttk.Button(frame, image=image_history, text="Bảng điểm    ",
                             compound='right', style="Home.TButton", command=scoree)
         button.grid(row=2, column=1, pady=40, padx=30)
 

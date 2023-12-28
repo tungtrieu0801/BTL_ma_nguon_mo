@@ -8,7 +8,7 @@ def display_score(root):
     #gọi hàm style căn chỉnh
     configure_styles()
     history_window = tk.Toplevel(root)
-    history_window.title("history")
+    history_window.title("Bảng điểm")
         # Lấy kích thước của màn hình
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
@@ -437,13 +437,14 @@ def display_score(root):
 
     # Add a button to trigger the delete_score function
     delete_score_button = ttk.Button(history_window, text="Xóa", command=delete_score)
-    delete_score_button.grid(row=2, column=2, pady=10, sticky="ew")
+    delete_score_button.grid(row=2, column=2, pady=6, sticky="ew")
 
-    search_entry = ttk.Entry(history_window, width=20)
+    search_entry = ttk.Entry(history_window, width=16)
     search_entry.grid(row=1, column=2, padx=5, pady=10, sticky="ew")
 
+
     # Add a button to trigger the search_scores function
-    search_button = ttk.Button(history_window, text="Tìm kiếm", command=search_scores)
+    search_button = ttk.Button(history_window, text="Tìm kiếm theo tên", command=search_scores)
     search_button.grid(row=1, column=3, pady=10, sticky="ew")
 
     label = ttk.Label(history_window, text="Dữ liệu điểm học sinh", style="GreenLabel.TLabel")

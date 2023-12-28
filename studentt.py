@@ -12,8 +12,8 @@ def display_student(root):
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     
-    window_width = 1200  # Thay đổi kích thước theo nhu cầu
-    window_height = 570  # Thay đổi kích thước theo nhu cầu
+    window_width = 1140  # Thay đổi kích thước theo nhu cầu
+    window_height = 585  # Thay đổi kích thước theo nhu cầu
     # Tính toán vị trí để cửa sổ xuất hiện giữa màn hình
     x = (screen_width - window_width) // 2
     y = (screen_height - window_height) // 2
