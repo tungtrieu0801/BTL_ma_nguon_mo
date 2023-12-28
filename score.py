@@ -428,7 +428,31 @@ def display_score(root):
         except mysql.connector.Error as err:
             # Handle MySQL errors
             messagebox.showerror("Lỗi", f"Dữ liệu lỗi")
+    def delete_all_scores():
+        confirm = messagebox.askyesno("Xác nhận", "Bạn có chắc muốn xóa tất cả điểm học sinh?")
+        if confirm:
+            try:
+                # Execute a query to delete all records from the table
+                delete_all_query = "DELETE FROM DiemHocSinh"
+                cursor.execute(delete_all_query)
+                conn.commit()
 
+                # Clear the Treeview
+                score_tree.delete(*score_tree.get_children())
+
+                # Update the total_students_label
+                update_total_students_label()
+
+                # Display a success message
+                messagebox.showinfo("Thành công", "Tất cả điểm học sinh đã được xóa.")
+
+            except mysql.connector.Error as err:
+                # Handle MySQL errors
+                messagebox.showerror("Lỗi", f"MySQL Error: {err}")
+
+    # Add a button to trigger the delete_all_scores function
+    delete_all_button = ttk.Button(history_window, text="Xóa tất cả", command=delete_all_scores)
+    delete_all_button.grid(row=2, column=8, pady=10, sticky="ew")
     show_all_button = ttk.Button(history_window, text="Hiển thị tất cả", command=show_all_students)
     show_all_button.grid(row=2, column=4, pady=10, sticky="ew")
     # Add a button to trigger the edit_score function

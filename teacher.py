@@ -10,7 +10,7 @@ def teacher(root):
     home_window = tk.Toplevel(root)
     home_window.title("Quản lí giáo viên")
     label = ttk.Label(home_window, text=" Quản lí giáo viên", style="GreenLabel.TLabel")
-    label.grid(row=0, column=1, columnspan=2,padx=20,pady=10,sticky='nsew')
+    label.place(relx=0.37,rely=0.05)
     # Lấy kích thước của màn hình
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
@@ -27,8 +27,8 @@ def teacher(root):
     def close_window_2():
         home_window.destroy()  # Đóng cửa sổ 2
         root.deiconify() 
-    back_button = ttk.Button(home_window, text="Back", command=close_window_2)
-    back_button.grid(row=1, column=1, padx=40,pady=20,sticky='ew')
+    back_button = ttk.Button(home_window, text="Back", command=close_window_2, style='Back_Bbutton.TButton')
+    back_button.place(relx=0.05,rely=0.05)
 
     tree = ttk.Treeview(home_window, columns=("HoTen", "MonDay", "ChucVu"), show="headings")
 
@@ -58,7 +58,9 @@ def teacher(root):
         tree.insert("", "end", values=row[1:],tags=(row[0],))
 
 
-    tree.grid(row=3, column=1, columnspan=4, rowspan=10, pady=10, padx=10, sticky="nsew")
+    tree.place(relx=0.01,rely=0.4,width=600)
+    y_scrollbar = ttk.Scrollbar(home_window, orient="vertical", command=tree.yview)
+    y_scrollbar.place(relx=0.98,rely=0.4,height=320,width=22)
     def delete_teacher():
         selected_item = tree.selection()
         if not selected_item:
@@ -272,21 +274,45 @@ def teacher(root):
             tk.messagebox.showerror("MySQL Error", f"MySQL Error: {err}")
         except Exception as e:
             tk.messagebox.showerror("Error", f"An error occurred: {e}")
+    def delete_all_scores():
+        confirm = messagebox.askyesno("Xác nhận", "Bạn có chắc muốn xóa tất cả điểm học sinh?")
+        if confirm:
+            try:
+                # Execute a query to delete all records from the table
+                delete_all_query = "DELETE FROM DiemHocSinh"
+                cursor.execute(delete_all_query)
+                conn.commit()
 
+                # Clear the Treeview
+                tree.delete(*tree.get_children())
+
+                # Update the total_students_label
+                # update_total_students_label()
+
+                # Display a success message
+                messagebox.showinfo("Thành công", "Tất cả điểm học sinh đã được xóa.")
+
+            except mysql.connector.Error as err:
+                # Handle MySQL errors
+                messagebox.showerror("Lỗi", f"MySQL Error: {err}")
+
+    # Add a button to trigger the delete_all_scores function
+    delete_all_button = ttk.Button(home_window, text="Xóa tất cả", command=delete_all_scores)
+    delete_all_button.place(relx=0.23,rely=0.28)
     # Thêm nút và entry để thêm giáo viên mới
     add_button = ttk.Button(home_window, text="Thêm giáo viên", command=add_teacher)
-    add_button.grid(row=1, column=2,padx=40,pady=20, sticky="ew")
+    add_button.place(relx=0.05,rely=0.22)
     # Thêm nút và entry để sửa thông tin giáo viên
     edit_button = ttk.Button(home_window, text="Sửa thông tin", command=edit_teacher)
-    edit_button.grid(row=2, column=1, padx=40, pady=20, sticky="ew")
+    edit_button.place(relx=0.23,rely=0.22)
     # Thêm nút để xóa giáo viên
     delete_button = ttk.Button(home_window, text="Xóa giáo viên", command=delete_teacher)
-    delete_button.grid(row=2, column=2, padx=40,pady=20, sticky="ew")
+    delete_button.place(relx=0.05,rely=0.28)
 
     export_button = ttk.Button(home_window, text="Xuất ra excel", command=export_to_excel)
-    export_button.grid(row=1, column=3,padx=40, pady=20, sticky="ew")
+    export_button.place(relx=0.41,rely=0.28)
 
     import_button = ttk.Button(home_window, text="Nhập bằng excel", command=import_from_excel)
-    import_button.grid(row=2, column=3, padx=40,pady=20, sticky="ew")
+    import_button.place(relx=0.41,rely=0.22)
     
 
